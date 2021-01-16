@@ -1,17 +1,15 @@
 package cn.edu.hcnu.client;
 
 
-
 import cn.edu.hcnu.util.MD5;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 
@@ -36,7 +34,7 @@ public class LoginThread extends Thread {
         loginf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         loginf.setTitle("聊天室" + " - 登录");
 
-        t = new JTextField("Version " + "1.1.0" + "        By liwei");
+        t = new JTextField("Version " + "1.1.0" + "  By liwei");
         t.setHorizontalAlignment(JTextField.CENTER);
         t.setEditable(false);
         loginf.getContentPane().add(t, BorderLayout.SOUTH);
@@ -58,7 +56,7 @@ public class LoginThread extends Thread {
         t2.setEditable(false);
         loginp.add(t2);
 
-        final JTextField loginPassword = new JTextField("laolu123");
+        final JTextField loginPassword = new JTextField("laolu23");
         loginPassword.setHorizontalAlignment(JTextField.CENTER);
         loginp.add(loginPassword);
         /*
@@ -86,18 +84,17 @@ public class LoginThread extends Thread {
             public void actionPerformed(ActionEvent e) {
                 String username = loginname.getText();
                 String password = loginPassword.getText();
-                String sql=null;
-                PreparedStatement pstmt=null;
-                ResultSet rs=null;
+                String sql = "";
+                PreparedStatement pstmt = null;
                 try {
                     String url = "jdbc:oracle:thin:@localhost:1521:orcl";
                     String username_db = "xcp";
                     String password_db = "xcp123";
-                    Connection conn = DriverManager.getConnection(url,username_db,password_db);
+                    Connection conn = DriverManager.getConnection(url, username_db, password_db);
                     sql = "SELECT password FROM users WHERE username=?";
-                    pstmt= conn.prepareStatement(sql);
-                    pstmt.setString(1,username);
-                    rs= pstmt.executeQuery();
+                    pstmt = conn.prepareStatement(sql);
+                    pstmt.setString(1, username);
+                    ResultSet rs = pstmt.executeQuery();
                     if (rs.next()) {
                         String encodePassword = rs.getString("PASSWORD");
                         if (MD5.checkpassword(password, encodePassword)) {
@@ -110,14 +107,28 @@ public class LoginThread extends Thread {
                              */
                             InetAddress p = InetAddress.getLocalHost();
                             String ip = p.getHostAddress();
-                        //    System.out.println("本机IP地址："+ip);
-                            sql = "UPDATE users SET ip=?,port=8888 WHERE username=?";
+                            System.out.println("本机IP地址：" + ip);
+                            int port = 1688;
+                            DatagramSocket ds = null;
+                            while (true) {
+                                try {
+                                    ds = new DatagramSocket(port);
+                                    break;
+                                } catch (IOException ex) {
+                                    port += 1;
+                                    // ex.printStackTrace();
+                                }
+                            }
+                            sql = "UPDATE users SET ip=?,port=?,status=? WHERE username=?";
                             pstmt = conn.prepareStatement(sql);
-                            pstmt.setString(1,ip);
-                            pstmt.setString(2,username);
-                            rs = pstmt.executeQuery();
+                            pstmt.setString(1, ip);
+                            pstmt.setInt(2, port);
+                            pstmt.setString(3, "online");
+                            pstmt.setString(4, username);
+                            //  rs = pstmt.executeQuery();
+                            pstmt.executeUpdate();
                             loginf.setVisible(false);
-                            ChatThreadWindow cw = new ChatThreadWindow();
+                            ChatThreadWindow cw = new ChatThreadWindow(username, ds);
                         } else {
                             System.out.println("登录失败");
                         }
