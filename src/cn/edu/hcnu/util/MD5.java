@@ -33,8 +33,8 @@ public class MD5 {
         else
             return false;
     }
-   /* public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        System.out.println(encoderByMd5("laobiao123"));
+  /*  public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        System.out.println(encoderByMd5("laolu23"));
         System.out.println(checkpassword("laobiao123", "QeRctFKuDXE7WvC5ZqCq9A=="));
     }*/
 }
